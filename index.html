@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connections Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Changed for scrolling */
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 20px 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            margin-bottom: 20px;
+        }
+
+        h1, h2 { margin-top: 0; color: #333; }
+
+        #initialChoiceContainer, #adminSetupContainer { display: none; }
+
+        .admin-group-setup {
+            margin-bottom: 15px; padding: 10px; border: 1px solid #ddd;
+            border-radius: 5px; background-color: #f9f9f9;
+        }
+        .admin-group-setup label { display: block; margin-bottom: 5px; font-weight: bold; text-align: left; }
+        .admin-group-setup input[type="text"] {
+            width: calc(100% - 22px); padding: 8px 10px; margin-bottom: 8px;
+            border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        }
+        .admin-group-setup .word-inputs input[type="text"]{
+            width: calc(25% - 10px); margin-right: 5px; margin-bottom: 5px;
+        }
+        .admin-group-setup .word-inputs input[type="text"]:last-child{ margin-right: 0; }
+
+        #gameContainer { display: none; }
+        .solved-groups-container { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .solved-group {
+            padding: 15px; border-radius: 8px; font-weight: bold;
+            color: white; text-align: left;
+        }
+        .solved-group .group-name { display: block; font-size: 1.1em; margin-bottom: 5px; }
+        .solved-group .group-words { font-size: 0.9em; font-weight: normal; }
+
+        .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .word-tile {
+            background-color: #e0e0e0; padding: 15px 8px; /* Adjusted padding */
+            border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.2s, transform 0.2s; user-select: none;
+            min-height: 35px; /* Adjusted min-height */
+            font-size: 0.85em; /* Adjusted font-size */
+            overflow-wrap: break-word; word-break: break-word;
+        }
+        .word-tile.selected { background-color: #5a5a5a; color: white; transform: scale(1.05); }
+        .word-tile.shaking { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0) scale(1.05); } 20%, 80% { transform: translate3d(2px, 0, 0) scale(1.05); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0) scale(1.05); } 40%, 60% { transform: translate3d(4px, 0, 0) scale(1.05); }
+        }
+
+        .controls button, .action-button {
+            padding: 10px 15px; margin: 5px; border: none; border-radius: 5px;
+            background-color: #777; color: white; cursor: pointer; font-size: 0.9em; /* Slightly smaller buttons */
+        }
+        .controls button:hover, .action-button:hover { background-color: #555; }
+        .controls button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .action-button.primary { background-color: #007bff; }
+        .action-button.primary:hover { background-color: #0056b3; }
+        .action-button.secondary { background-color: #6c757d; }
+        .action-button.secondary:hover { background-color: #545b62; }
+
+
+        .mistakes-container { margin-bottom: 15px; font-size: 0.9em; }
+        .mistake-dot { display: inline-block; width: 12px; height: 12px; background-color: #555; border-radius: 50%; margin: 0 3px; transition: background-color 0.3s; }
+        .mistake-dot.lost { background-color: #ddd; }
+
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe; margin: auto; padding: 20px; border: 1px solid #888; /* Reduced padding */
+            width: 80%; max-width: 380px; text-align: center; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h2 { margin-top: 0; font-size: 1.3em; }
+        .modal-content p { font-size: 0.9em; }
+        .modal-content button {
+            padding: 10px 20px; margin-top: 15px; background-color: #007bff; color: white;
+            border: none; border-radius: 5px; cursor: pointer; font-size: 1em;
+        }
+        .modal-content button:hover { background-color: #0056b3; }
+
+        #validationMessage, #shareLinkContainer {
+            color: red; margin-top: 10px; font-weight: bold; font-size: 0.9em;
+        }
+        #shareLinkContainer { color: #007bff; }
+        #shareLinkInput { width: 100%; padding: 8px; box-sizing: border-box; margin-top: 5px; font-size: 0.8em; }
+        .info-text { font-size: 0.85em; color: #555; margin-bottom: 15px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="initialChoiceContainer" class="container">
+        <h2>Welcome to Connections!</h2>
+        <p class="info-text">Play a game or set up your own custom version.</p>
+        <button id="playSharedGameButton" class="action-button" style="display:none;">Play Shared Game</button>
+        <button id="playSavedGameButton" class="action-button" style="display:none;">Play My Last Custom Game</button>
+        <button id="playDefaultGameButton" class="action-button">Play Default Game</button>
+        <button id="setupNewGameButton" class="action-button primary">Set Up / Share New Game</button>
+    </div>
+
+    <div id="adminSetupContainer" class="container">
+        <h2>Set Up Your Connections Game</h2>
+        <p class="info-text">Define 4 groups with 4 unique words each. After saving, you can generate a link to share this specific setup.</p>
+        <form id="adminForm">
+            <!-- Group setups (condensed for brevity, same as before) -->
+            <div class="admin-group-setup">
+                <label for="groupName1">Group 1 Category:</label> <input type="text" id="groupName1" name="groupName1" required>
+                <label>Words for Group 1:</label> <div class="word-inputs"> <input type="text" name="group1word1" required> <input type="text" name="group1word2" required> <input type="text" name="group1word3" required> <input type="text" name="group1word4" required> </div>
+            </div>
+            <div class="admin-group-setup">
+                <label for="groupName2">Group 2 Category:</label> <input type="text" id="groupName2" name="groupName2" required>
+                <label>Words for Group 2:</label> <div class="word-inputs"> <input type="text" name="group2word1" required> <input type="text" name="group2word2" required> <input type="text" name="group2word3" required> <input type="text" name="group2word4" required> </div>
+            </div>
+            <div class="admin-group-setup">
+                <label for="groupName3">Group 3 Category:</label> <input type="text" id="groupName3" name="groupName3" required>
+                <label>Words for Group 3:</label> <div class="word-inputs"> <input type="text" name="group3word1" required> <input type="text" name="group3word2" required> <input type="text" name="group3word3" required> <input type="text" name="group3word4" required> </div>
+            </div>
+            <div class="admin-group-setup">
+                <label for="groupName4">Group 4 Category:</label> <input type="text" id="groupName4" name="groupName4" required>
+                <label>Words for Group 4:</label> <div class="word-inputs"> <input type="text" name="group4word1" required> <input type="text" name="group4word2" required> <input type="text" name="group4word3" required> <input type="text" name="group4word4" required> </div>
+            </div>
+            <button type="submit" class="action-button primary">Save & Play This Setup</button>
+            <button type="button" id="generateShareLinkButton" class="action-button secondary" style="display:none;">Generate Sharable Link</button>
+            <button type="button" id="cancelSetupButton" class="action-button">Cancel</button>
+            <div id="validationMessage"></div>
+            <div id="shareLinkContainer" style="display:none;">
+                <p>Share this link for others to play your custom game:</p>
+                <input type="text" id="shareLinkInput" readonly>
+                <button type="button" id="copyLinkButton" class="action-button">Copy Link</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="gameContainer" class="container">
+        <!-- Game content same as before -->
+        <h1>Create four groups of four!</h1>
+        <div class="solved-groups-container" id="solvedGroupsContainer"></div>
+        <div class="word-grid" id="wordGrid"></div>
+        <div class="mistakes-container">
+            Mistakes Remaining: <span id="mistakesDots"></span>
+        </div>
+        <div class="controls">
+            <button id="shuffleButton">Shuffle</button>
+            <button id="deselectAllButton">Deselect All</button>
+            <button id="submitButton">Submit</button>
+        </div>
+        <button id="changeSetupButton" class="action-button" style="margin-top: 20px;">Back to Main Menu</button>
+    </div>
+
+    <div id="messageModal" class="modal">
+        <!-- Modal content same as before -->
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2> <p id="modalMessage"></p>
+            <button id="playAgainButton">Play Again (Same Setup)</button>
+            <button id="modalChangeSetupButton">Back to Main Menu</button>
+        </div>
+    </div>
+
+    <script>
+        // Element selectors (same as before, ensure all are present)
+        const initialChoiceContainer = document.getElementById('initialChoiceContainer');
+        const adminSetupContainer = document.getElementById('adminSetupContainer');
+        const gameContainer = document.getElementById('gameContainer');
+        const adminForm = document.getElementById('adminForm');
+        const validationMessage = document.getElementById('validationMessage');
+        const shareLinkContainer = document.getElementById('shareLinkContainer');
+        const shareLinkInput = document.getElementById('shareLinkInput');
+        const copyLinkButton = document.getElementById('copyLinkButton');
+
+        const playSharedGameButton = document.getElementById('playSharedGameButton');
+        const playSavedGameButton = document.getElementById('playSavedGameButton');
+        const playDefaultGameButton = document.getElementById('playDefaultGameButton');
+        const setupNewGameButton = document.getElementById('setupNewGameButton');
+        const generateShareLinkButton = document.getElementById('generateShareLinkButton');
+        const cancelSetupButton = document.getElementById('cancelSetupButton');
+        const changeSetupButton = document.getElementById('changeSetupButton');
+
+        const wordGrid = document.getElementById('wordGrid');
+        const solvedGroupsContainer = document.getElementById('solvedGroupsContainer');
+        const mistakesDotsContainer = document.getElementById('mistakesDots');
+        const shuffleButton = document.getElementById('shuffleButton');
+        const deselectAllButton = document.getElementById('deselectAllButton');
+        const submitButton = document.getElementById('submitButton');
+        const modal = document.getElementById('messageModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const playAgainButton = document.getElementById('playAgainButton');
+        const modalChangeSetupButton = document.getElementById('modalChangeSetupButton');
+
+        const MAX_MISTAKES = 4;
+        let mistakesRemaining;
+        let selectedWords = [];
+        let gameWords = [];
+        let currentGroupsData = [];
+        let solvedGroupsCount = 0;
+        let gameLoadedFromURL = false; // Flag
+
+        const defaultGroupsData = [
+            { name: "SHADES OF...", words: ["EVERGREEN", "INFRARED", "MARIGOLD", "QUICKSILVER"], color: '#a6d8a6' },
+            { name: "PIZZA STYLES", words: ["HAWAIIAN", "PLAIN", "SUPREME", "VEGGIE"], color: '#a7d8e8' },
+            { name: "TYPES OF MARKETS", words: ["BAZAAR", "FAIR", "MARKET", "OUTLET"], color: '#d7a7e8' },
+            { name: "CLEANING RELATED", words: ["BATHROOM", "DRY", "PIPE", "VACUUM"], color: '#e8cfa7' }
+        ];
+        const groupColors = ['#a6d8a6', '#a7d8e8', '#d7a7e8', '#e8cfa7', '#f0c0c0', '#c0f0c0', '#c0c0f0', '#f0f0c0'];
+
+        function hideAllContainers() {
+            initialChoiceContainer.style.display = 'none';
+            adminSetupContainer.style.display = 'none';
+            gameContainer.style.display = 'none';
+            modal.style.display = 'none';
+        }
+
+        function showInitialChoice() {
+            hideAllContainers();
+            initialChoiceContainer.style.display = 'block';
+            playSavedGameButton.style.display = localStorage.getItem('customConnectionsGame') ? 'inline-block' : 'none';
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('gameData')) {
+                playSharedGameButton.style.display = 'inline-block';
+            } else {
+                playSharedGameButton.style.display = 'none';
+            }
+        }
+        
+        playSharedGameButton.addEventListener('click', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameDataParam = urlParams.get('gameData');
+            if (gameDataParam) {
+                try {
+                    const decodedJson = atob(gameDataParam); // Base64 decode
+                    const gameSetup = JSON.parse(decodedJson);
+                    gameLoadedFromURL = true; // Set flag
+                    startGameWithConfig(gameSetup);
+                } catch (e) {
+                    console.error("Error loading game data from URL:", e);
+                    alert("Could not load the shared game. It might be corrupted.");
+                    showInitialChoice(); // Go back if error
+                }
+            }
+        });
+
+
+        function showAdminSetup() {
+            hideAllContainers();
+            adminSetupContainer.style.display = 'block';
+            adminForm.reset();
+            validationMessage.textContent = '';
+            shareLinkContainer.style.display = 'none';
+            generateShareLinkButton.style.display = localStorage.getItem('customConnectionsGame') ? 'inline-block' : 'none';
+        }
+
+        playSavedGameButton.addEventListener('click', () => {
+            const savedData = JSON.parse(localStorage.getItem('customConnectionsGame'));
+            if (savedData) {
+                gameLoadedFromURL = false;
+                startGameWithConfig(savedData);
+            }
+        });
+
+        playDefaultGameButton.addEventListener('click', () => {
+            gameLoadedFromURL = false;
+            startGameWithConfig(defaultGroupsData);
+        });
+
+        setupNewGameButton.addEventListener('click', showAdminSetup);
+        cancelSetupButton.addEventListener('click', showInitialChoice);
+        changeSetupButton.addEventListener('click', showInitialChoice);
+        modalChangeSetupButton.addEventListener('click', () => {
+            modal.style.display = 'none';
+            showInitialChoice();
+        });
+
+        adminForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            // Validation logic (same as before)
+            validationMessage.textContent = '';
+            const formData = new FormData(adminForm);
+            const newGroupsData = [];
+            const allEnteredWords = new Set();
+            let duplicateFound = false;
+            let emptyFieldFound = false;
+
+            for (let i = 1; i <= 4; i++) {
+                const groupName = formData.get(`groupName${i}`).trim().toUpperCase();
+                if (!groupName) emptyFieldFound = true;
+                const words = [
+                    formData.get(`group${i}word1`).trim().toUpperCase(), formData.get(`group${i}word2`).trim().toUpperCase(),
+                    formData.get(`group${i}word3`).trim().toUpperCase(), formData.get(`group${i}word4`).trim().toUpperCase()
+                ];
+                if (words.some(w => !w)) emptyFieldFound = true;
+                words.forEach(word => { if (word) { if (allEnteredWords.has(word)) duplicateFound = true; allEnteredWords.add(word); } });
+                newGroupsData.push({ name: groupName, words: words, color: groupColors[i-1] });
+            }
+
+            if (emptyFieldFound) { validationMessage.textContent = "All fields are required."; return; }
+            if (duplicateFound) { validationMessage.textContent = "All 16 words must be unique."; return; }
+            if (allEnteredWords.size !== 16 && !emptyFieldFound) { validationMessage.textContent = "Please fill all 16 unique word fields."; return; }
+
+            localStorage.setItem('customConnectionsGame', JSON.stringify(newGroupsData));
+            generateShareLinkButton.style.display = 'inline-block'; // Show button after saving
+            shareLinkContainer.style.display = 'none'; // Hide any old link
+            alert("Custom game setup saved! You can now generate a sharable link or play it directly.");
+            // Optional: Immediately start playing this new setup
+            gameLoadedFromURL = false;
+            startGameWithConfig(newGroupsData);
+        });
+
+        generateShareLinkButton.addEventListener('click', () => {
+            const savedDataString = localStorage.getItem('customConnectionsGame');
+            if (!savedDataString) {
+                alert("No custom game saved. Please save a setup first.");
+                return;
+            }
+            try {
+                const base64EncodedData = btoa(savedDataString); // Base64 encode the JSON string
+                const currentUrl = window.location.href.split('?')[0]; // Get URL without existing query params
+                const shareUrl = `${currentUrl}?gameData=${base64EncodedData}`;
+                
+                shareLinkInput.value = shareUrl;
+                shareLinkContainer.style.display = 'block';
+                validationMessage.textContent = ''; // Clear any previous validation messages
+            } catch (e) {
+                console.error("Error generating share link:", e);
+                alert("Could not generate share link.");
+            }
+        });
+
+        copyLinkButton.addEventListener('click', () => {
+            shareLinkInput.select();
+            shareLinkInput.setSelectionRange(0, 99999); // For mobile devices
+            try {
+                document.execCommand('copy');
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy link. Please copy it manually.');
+            }
+        });
+
+
+        function startGameWithConfig(groupsData) {
+            currentGroupsData = groupsData;
+            hideAllContainers();
+            gameContainer.style.display = 'block';
+            initGame();
+        }
+
+        // --- initGame and other game logic functions (handleTileClick, submit, processCorrectGuess, etc.) ---
+        // These functions remain largely the same as in the previous version.
+        // Make sure they use `currentGroupsData`.
+        function initGame() {
+            solvedGroupsContainer.innerHTML = '';
+            wordGrid.innerHTML = '';
+            selectedWords = [];
+            gameWords = [];
+            solvedGroupsCount = 0;
+            mistakesRemaining = MAX_MISTAKES;
+            updateMistakesDisplay();
+            modal.style.display = 'none';
+
+            const allWordsNested = currentGroupsData.map(group => group.words);
+            let flatWords = [].concat(...allWordsNested).map(w => w.toUpperCase());
+            
+            flatWords.sort(() => Math.random() - 0.5);
+
+            flatWords.forEach(wordText => {
+                const tile = document.createElement('div');
+                tile.classList.add('word-tile');
+                tile.textContent = wordText;
+                tile.dataset.word = wordText;
+                tile.addEventListener('click', () => handleTileClick(tile));
+                wordGrid.appendChild(tile);
+                gameWords.push({ text: wordText, element: tile, solved: false });
+            });
+            updateSubmitButtonState();
+        }
+
+        function handleTileClick(tile) {
+            if (tile.classList.contains('solved-placeholder')) return;
+            const word = tile.dataset.word;
+            if (selectedWords.includes(word)) {
+                selectedWords = selectedWords.filter(w => w !== word);
+                tile.classList.remove('selected');
+                anime({ targets: tile, scale: 1, duration: 200 });
+            } else {
+                if (selectedWords.length < 4) {
+                    selectedWords.push(word);
+                    tile.classList.add('selected');
+                    anime({ targets: tile, scale: 1.05, duration: 200 });
+                }
+            }
+            updateSubmitButtonState();
+        }
+        
+        function updateSubmitButtonState() {
+            submitButton.disabled = selectedWords.length !== 4;
+        }
+
+        function arraysEqualIgnoringOrder(arr1, arr2) {
+            if (arr1.length !== arr2.length) return false;
+            const sortedArr1 = [...arr1].sort();
+            const sortedArr2 = [...arr2].sort();
+            return sortedArr1.every((value, index) => value === sortedArr2[index]);
+        }
+
+        submitButton.addEventListener('click', () => {
+            if (selectedWords.length !== 4) return;
+            const selectedWordsUpper = selectedWords.map(w => w.toUpperCase());
+            const foundGroup = currentGroupsData.find(groupData => 
+                arraysEqualIgnoringOrder(selectedWordsUpper, groupData.words.map(w => w.toUpperCase())) && 
+                !isGroupSolved(groupData.name)
+            );
+            if (foundGroup) processCorrectGuess(foundGroup);
+            else processIncorrectGuess();
+            updateSubmitButtonState();
+        });
+        
+        function isGroupSolved(groupName) {
+            return !!document.querySelector(`.solved-group[data-group-name="${groupName.toUpperCase()}"]`);
+        }
+
+        function processCorrectGuess(groupData) {
+            solvedGroupsCount++;
+            const groupDiv = document.createElement('div');
+            groupDiv.classList.add('solved-group');
+            groupDiv.style.backgroundColor = groupData.color;
+            groupDiv.dataset.groupName = groupData.name.toUpperCase();
+            const groupNameSpan = document.createElement('span');
+            groupNameSpan.classList.add('group-name');
+            groupNameSpan.textContent = groupData.name.toUpperCase();
+            const groupWordsSpan = document.createElement('span');
+            groupWordsSpan.classList.add('group-words');
+            groupWordsSpan.textContent = groupData.words.map(w => w.toUpperCase()).join(', ');
+            groupDiv.appendChild(groupNameSpan);
+            groupDiv.appendChild(groupWordsSpan);
+            groupDiv.style.opacity = 0;
+            groupDiv.style.transform = 'translateY(20px)';
+            
+            const solvedGroupElements = Array.from(solvedGroupsContainer.children);
+            const targetIndex = currentGroupsData.findIndex(g => g.name.toUpperCase() === groupData.name.toUpperCase());
+            let inserted = false;
+            for(let i = 0; i < solvedGroupElements.length; i++) {
+                const existingGroupName = solvedGroupElements[i].dataset.groupName;
+                const existingGroupIndex = currentGroupsData.findIndex(g => g.name.toUpperCase() === existingGroupName);
+                if (targetIndex < existingGroupIndex) {
+                    solvedGroupsContainer.insertBefore(groupDiv, solvedGroupElements[i]);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) solvedGroupsContainer.appendChild(groupDiv);
+
+            anime({ targets: groupDiv, opacity: 1, translateY: 0, duration: 500, easing: 'easeOutExpo' });
+
+            const tilesToRemove = [];
+            const selectedWordsUpper = selectedWords.map(w => w.toUpperCase());
+            selectedWordsUpper.forEach(word => {
+                const tileObj = gameWords.find(gw => gw.text.toUpperCase() === word && !gw.solved);
+                if (tileObj) { tileObj.solved = true; tileObj.element.classList.remove('selected'); tilesToRemove.push(tileObj.element); }
+            });
+            anime({
+                targets: tilesToRemove, opacity: 0, scale: 0.5, duration: 500, easing: 'easeInExpo', delay: anime.stagger(100),
+                complete: () => { tilesToRemove.forEach(tile => tile.remove()); gameWords = gameWords.filter(gw => !gw.solved); }
+            });
+            selectedWords = [];
+            if (solvedGroupsCount === currentGroupsData.length) showModal("Congratulations!", "You found all the groups!");
+        }
+
+        function processIncorrectGuess() {
+            mistakesRemaining--;
+            updateMistakesDisplay();
+            const selectedTiles = selectedWords.map(word => gameWords.find(gw => gw.text === word).element);
+            selectedTiles.forEach(tile => { tile.classList.add('shaking'); setTimeout(() => tile.classList.remove('shaking'), 500); });
+            setTimeout(() => { selectedTiles.forEach(tile => tile.classList.remove('selected')); selectedWords = []; updateSubmitButtonState(); }, 600);
+            if (mistakesRemaining === 0) showModal("Game Over", "You've run out of mistakes.");
+        }
+
+        function updateMistakesDisplay() {
+            mistakesDotsContainer.innerHTML = '';
+            for (let i = 0; i < MAX_MISTAKES; i++) {
+                const dot = document.createElement('span');
+                dot.classList.add('mistake-dot');
+                if (i >= mistakesRemaining) dot.classList.add('lost');
+                mistakesDotsContainer.appendChild(dot);
+            }
+            if (mistakesRemaining < MAX_MISTAKES) {
+                const actualDotIndex = mistakesRemaining; 
+                 if (mistakesDotsContainer.children[actualDotIndex] && !mistakesDotsContainer.children[actualDotIndex].classList.contains('lost-animated-flag')) {
+                    anime({ targets: mistakesDotsContainer.children[actualDotIndex], backgroundColor: '#ddd', scale: [1, 0.8, 1.2, 1], duration: 400, easing: 'easeOutElastic(1, .8)' });
+                    mistakesDotsContainer.children[actualDotIndex].classList.add('lost-animated-flag');
+                }
+            }
+        }
+
+        deselectAllButton.addEventListener('click', () => {
+            selectedWords.forEach(word => {
+                const tileObj = gameWords.find(gw => gw.text === word);
+                if (tileObj && tileObj.element) { tileObj.element.classList.remove('selected'); anime({ targets: tileObj.element, scale: 1, duration: 200 }); }
+            });
+            selectedWords = [];
+            updateSubmitButtonState();
+        });
+
+        shuffleButton.addEventListener('click', () => {
+            const activeTiles = Array.from(wordGrid.querySelectorAll('.word-tile:not(.solved-placeholder)'));
+            for (let i = activeTiles.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [activeTiles[i], activeTiles[j]] = [activeTiles[j], activeTiles[i]]; }
+            anime({
+                targets: activeTiles, opacity: 0, scale: 0.8, duration: 200, easing: 'easeInQuad', delay: anime.stagger(20, {from: 'center'}),
+                complete: () => {
+                    activeTiles.forEach(tile => wordGrid.appendChild(tile));
+                    anime({ targets: activeTiles, opacity: 1, scale: 1, duration: 300, easing: 'easeOutQuad', delay: anime.stagger(30, {from: 'center'}) });
+                }
+            });
+        });
+
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            playAgainButton.textContent = gameLoadedFromURL ? "Play This Shared Game Again" : "Play Again (Same Setup)"; // Adjust button text
+            modal.style.display = 'flex';
+            anime({ targets: modal, opacity: [0, 1], duration: 300, easing: 'easeOutQuad' });
+            anime({ targets: '.modal-content', scale: [0.7, 1], opacity: [0, 1], duration: 400, easing: 'easeOutExpo', delay: 100 });
+        }
+
+        playAgainButton.addEventListener('click', () => {
+            anime({
+                targets: modal, opacity: 0, duration: 300, easing: 'easeInQuad',
+                complete: () => { modal.style.display = 'none'; initGame(); }
+            });
+        });
+
+        // Initial setup: Check for URL param first, then show initial choice
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameDataParam = urlParams.get('gameData');
+
+            if (gameDataParam) {
+                try {
+                    const decodedJson = atob(gameDataParam); // Base64 decode
+                    const gameSetup = JSON.parse(decodedJson);
+                    gameLoadedFromURL = true;
+                    startGameWithConfig(gameSetup); 
+                } catch (e) {
+                    console.error("Error loading game data from URL on initial load:", e);
+                    alert("Could not load the shared game. It might be corrupted. Showing default options.");
+                    showInitialChoice(); // Fallback if URL data is bad
+                }
+            } else {
+                showInitialChoice(); // Normal startup if no gameData in URL
+            }
+        });
+
+    </script>
+</body>
+</html>
