@@ -178,12 +178,49 @@
         // ADMIN: After using the admin interface (?admin=YOUR_KEY),
         // copy the generated 'const liveGameData = ...;' output
         // and PASTE IT HERE, replacing this comment and the line below.
-        const liveGameData = [
-            { name: "FRUITS", words: ["APPLE", "BANANA", "CHERRY", "DATE"], color: '#a6d8a6' },
-            { name: "COLORS", words: ["RED", "GREEN", "BLUE", "YELLOW"], color: '#a7d8e8' },
-            { name: "ANIMALS", words: ["DOG", "CAT", "LION", "TIGER"], color: '#d7a7e8' },
-            { name: "PLANETS", words: ["EARTH", "MARS", "JUPITER", "VENUS"], color: '#e8cfa7' }
-        ]; // <-- EXAMPLE! REPLACE THIS WITH YOUR GENERATED DATA or null if no default.
+	    const liveGameData = [
+  {
+    "name": "FRUITS",
+    "words": [
+      "ORANGE",
+      "GRAPE",
+      "LEMON",
+      "BANANA"
+    ],
+    "color": "#a6d8a6"
+  },
+  {
+    "name": "____ TEA",
+    "words": [
+      "BLACK",
+      "GREEN",
+      "MATCHA",
+      "EARL GREY"
+    ],
+    "color": "#a7d8e8"
+  },
+  {
+    "name": "TWO DOG BREEDS",
+    "words": [
+      "GOLDEN",
+      "RETRIEVER",
+      "DOGO",
+      "ARGENTINO"
+    ],
+    "color": "#d7a7e8"
+  },
+  {
+    "name": "ONE SPECIFIC YOUTUBER",
+    "words": [
+      "THREE",
+      "BLUE",
+      "ONE",
+      "BROWN"
+    ],
+    "color": "#e8cfa7"
+  }
+];
+    // <-- EXAMPLE! REPLACE THIS WITH YOUR GENERATED DATA or null if no default.
 
         const fallbackDefaultGameData = [ // Used if liveGameData is null or invalid
             { name: "EXAMPLE FRUITS", words: ["FIG", "GRAPE", "KIWI", "LEMON"], color: '#a6d8a6' },
