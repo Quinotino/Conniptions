@@ -512,16 +512,114 @@
             selectedWords = [];
             if (solvedGroupsCount === currentGroupsData.length) showModal("Congratulations!", "You found all the groups!");
         }
+		function processIncorrectGuess() {
+    mistakesRemaining--;
+    updateMistakesDisplay(); // This will animate the dot loss
 
-        function processIncorrectGuess() {
-            // ... (same as previous versions)
-            mistakesRemaining--;
-            updateMistakesDisplay();
-            const selectedTiles = selectedWords.map(word => gameWords.find(gw => gw.text === word).element);
-            selectedTiles.forEach(tile => { tile.classList.add('shaking'); setTimeout(() => tile.classList.remove('shaking'), 500); });
-            setTimeout(() => { selectedTiles.forEach(tile => tile.classList.remove('selected')); selectedWords = []; updateSubmitButtonState(); }, 600);
-            if (mistakesRemaining === 0) showModal("Game Over", "You've run out of mistakes.");
+    const selectedTilesElements = selectedWords.map(word =>
+        gameWords.find(gw => gw.text === word && gw.element).element
+    ).filter(el => el); // Ensure elements exist
+
+    // Shake animation for the incorrectly guessed tiles
+    selectedTilesElements.forEach(tile => {
+        tile.classList.add('shaking');
+        setTimeout(() => tile.classList.remove('shaking'), 500);
+    });
+
+    // Deselect after a brief pause
+    setTimeout(() => {
+        selectedTilesElements.forEach(tile => tile.classList.remove('selected'));
+        selectedWords = [];
+        updateSubmitButtonState();
+    }, 600);
+
+
+    if (mistakesRemaining === 0) {
+        // Game Over: Reveal unsolved groups first, then show modal
+        revealUnsolvedGroupsAndEndGame(); // <<< THIS IS THE KEY CHANGE HERE
+    }
+}    
+		function revealUnsolvedGroupsAndEndGame() {
+    // Disable further interactions
+    submitButton.disabled = true;
+    deselectAllButton.disabled = true;
+    shuffleButton.disabled = true;
+    wordGrid.style.pointerEvents = 'none'; // Prevent clicking on tiles
+
+    let delay = 0;
+    const unsolvedGroupElements = [];
+
+    currentGroupsData.forEach((groupData, index) => {
+        if (!isGroupSolved(groupData.name)) {
+            const groupDiv = document.createElement('div');
+            groupDiv.classList.add('solved-group', 'revealed-unsolved'); // Add a class for styling
+            groupDiv.style.backgroundColor = groupData.color; // Use existing color
+            // You might want a slightly different visual treatment for revealed groups
+            // e.g., groupDiv.style.border = '2px dashed white';
+            groupDiv.dataset.groupName = groupData.name.toUpperCase();
+
+            const groupNameSpan = document.createElement('span');
+            groupNameSpan.classList.add('group-name');
+            groupNameSpan.textContent = groupData.name.toUpperCase();
+
+            const groupWordsSpan = document.createElement('span');
+            groupWordsSpan.classList.add('group-words');
+            groupWordsSpan.textContent = groupData.words.map(w => w.toUpperCase()).join(', ');
+
+            groupDiv.appendChild(groupNameSpan);
+            groupDiv.appendChild(groupWordsSpan);
+
+            groupDiv.style.opacity = 0;
+            groupDiv.style.transform = 'translateY(20px)';
+            
+            // Find the correct insertion point to maintain rough order if some were solved
+            const solvedGroupDOMNodes = Array.from(solvedGroupsContainer.children);
+            let inserted = false;
+            for(let i = 0; i < solvedGroupDOMNodes.length; i++) {
+                const existingGroupName = solvedGroupDOMNodes[i].dataset.groupName;
+                const existingGroupIndexInSource = currentGroupsData.findIndex(g => g.name.toUpperCase() === existingGroupName);
+                if (index < existingGroupIndexInSource) {
+                    solvedGroupsContainer.insertBefore(groupDiv, solvedGroupDOMNodes[i]);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                solvedGroupsContainer.appendChild(groupDiv);
+            }
+            unsolvedGroupElements.push(groupDiv);
+
+            // Highlight corresponding tiles on the grid
+            groupData.words.forEach(wordInGroup => {
+                const tileObj = gameWords.find(gw => gw.text.toUpperCase() === wordInGroup.toUpperCase() && !gw.solved);
+                if (tileObj && tileObj.element) {
+                    tileObj.element.classList.remove('selected'); // Ensure not selected
+                    tileObj.element.style.backgroundColor = groupData.color; // Match group color
+                    tileObj.element.style.color = 'white'; // Ensure text is visible
+                    tileObj.element.style.opacity = 0.7; // Slightly fade them if preferred
+                }
+            });
         }
+    });
+
+    if (unsolvedGroupElements.length > 0) {
+        anime({
+            targets: unsolvedGroupElements,
+            opacity: 1,
+            translateY: 0,
+            duration: 600,
+            easing: 'easeOutExpo',
+            delay: anime.stagger(200, { start: 100 }), // Stagger reveal
+            complete: () => {
+                showModal("Game Over", "You've run out of mistakes. Here are the remaining solutions.");
+            }
+        });
+    } else {
+        // This case should ideally not happen if game ends with 0 mistakes and not all solved,
+        // but as a fallback:
+        showModal("Game Over", "You've run out of mistakes.");
+    }
+}
 
         function updateMistakesDisplay() {
             // ... (same as previous versions)
@@ -532,7 +630,7 @@
                 if (i >= mistakesRemaining) dot.classList.add('lost');
                 mistakesDotsContainer.appendChild(dot);
             }
-            if (mistakesRemaining < MAX_MISTAKES) {
+		if (mistakesRemaining < MAX_MISTAKES && mistakesRemaining >= 0) {
                 const actualDotIndex = mistakesRemaining; 
                  if (mistakesDotsContainer.children[actualDotIndex] && !mistakesDotsContainer.children[actualDotIndex].classList.contains('lost-animated-flag')) {
                     anime({ targets: mistakesDotsContainer.children[actualDotIndex], backgroundColor: '#ddd', scale: [1, 0.8, 1.2, 1], duration: 400, easing: 'easeOutElastic(1, .8)' });
@@ -564,15 +662,21 @@
             });
         });
 
-        function showModal(title, message) {
-            // ... (same as previous versions, adjust button text based on gameLoadedFromURLParam)
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            playAgainButton.textContent = gameLoadedFromURLParam ? "Play This Shared Game Again" : "Play Again";
-            modal.style.display = 'flex';
-            anime({ targets: modal, opacity: [0, 1], duration: 300, easing: 'easeOutQuad' });
-            anime({ targets: '.modal-content', scale: [0.7, 1], opacity: [0, 1], duration: 400, easing: 'easeOutExpo', delay: 100 });
-        }
+      function showModal(title, message) {
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    playAgainButton.textContent = gameLoadedFromURLParam ? "Play This Shared Game Again" : "Play Again";
+    
+    // Ensure modal is ready to be shown
+    modal.style.opacity = 0; // Reset opacity before display change
+    modal.style.display = 'flex'; // Set display to flex
+    
+    anime.remove(modal); // Remove any existing animations on the modal
+    anime.remove('.modal-content'); // Remove existing animations on modal content
+
+    anime({ targets: modal, opacity: [0, 1], duration: 300, easing: 'easeOutQuad' });
+    anime({ targets: '.modal-content', scale: [0.7, 1], opacity: [0, 1], duration: 400, easing: 'easeOutExpo', delay: 100 });
+} 
 
         playAgainButton.addEventListener('click', () => {
             // ... (same as previous versions)
