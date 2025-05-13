@@ -11,14 +11,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Changed for scrolling */
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
             color: #333;
             padding: 20px 0;
         }
-
         .container {
             background-color: white;
             padding: 25px;
@@ -29,16 +28,16 @@
             width: 90%;
             margin-bottom: 20px;
         }
+        h1, h2, h3 { margin-top: 0; color: #333; }
+        p.info-text { font-size: 0.9em; color: #555; margin-bottom: 15px; }
 
-        h1, h2 { margin-top: 0; color: #333; }
-
-        #initialChoiceContainer, #adminSetupContainer { display: none; }
-
+        /* Admin Setup Specific Styles */
+        #adminSetupContainer { display: none; } /* Hidden by default */
         .admin-group-setup {
             margin-bottom: 15px; padding: 10px; border: 1px solid #ddd;
-            border-radius: 5px; background-color: #f9f9f9;
+            border-radius: 5px; background-color: #f9f9f9; text-align: left;
         }
-        .admin-group-setup label { display: block; margin-bottom: 5px; font-weight: bold; text-align: left; }
+        .admin-group-setup label { display: block; margin-bottom: 5px; font-weight: bold; }
         .admin-group-setup input[type="text"] {
             width: calc(100% - 22px); padding: 8px 10px; margin-bottom: 8px;
             border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
@@ -47,25 +46,23 @@
             width: calc(25% - 10px); margin-right: 5px; margin-bottom: 5px;
         }
         .admin-group-setup .word-inputs input[type="text"]:last-child{ margin-right: 0; }
+        #outputForLiveGameContainer { margin-top: 20px; padding: 15px; border: 1px dashed #007bff; background-color: #e7f3ff; text-align: left;}
+        #outputForLiveGameContainer h3 { margin-top:0; }
+        #liveGameDataOutput { width:100%; box-sizing: border-box; min-height: 150px; font-family: monospace; white-space: pre; overflow-x: auto;}
 
-        #gameContainer { display: none; }
+        /* Game Styles */
+        #gameContainer { display: none; } /* Hidden by default */
         .solved-groups-container { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .solved-group {
-            padding: 15px; border-radius: 8px; font-weight: bold;
-            color: white; text-align: left;
-        }
+        .solved-group { padding: 15px; border-radius: 8px; font-weight: bold; color: white; text-align: left; }
         .solved-group .group-name { display: block; font-size: 1.1em; margin-bottom: 5px; }
         .solved-group .group-words { font-size: 0.9em; font-weight: normal; }
 
         .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
         .word-tile {
-            background-color: #e0e0e0; padding: 15px 8px; /* Adjusted padding */
-            border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase;
-            display: flex; align-items: center; justify-content: center;
+            background-color: #e0e0e0; padding: 15px 8px; border-radius: 5px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase; display: flex; align-items: center; justify-content: center;
             transition: background-color 0.2s, transform 0.2s; user-select: none;
-            min-height: 35px; /* Adjusted min-height */
-            font-size: 0.85em; /* Adjusted font-size */
-            overflow-wrap: break-word; word-break: break-word;
+            min-height: 35px; font-size: 0.85em; overflow-wrap: break-word; word-break: break-word;
         }
         .word-tile.selected { background-color: #5a5a5a; color: white; transform: scale(1.05); }
         .word-tile.shaking { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
@@ -76,26 +73,24 @@
 
         .controls button, .action-button {
             padding: 10px 15px; margin: 5px; border: none; border-radius: 5px;
-            background-color: #777; color: white; cursor: pointer; font-size: 0.9em; /* Slightly smaller buttons */
+            background-color: #777; color: white; cursor: pointer; font-size: 0.9em;
         }
         .controls button:hover, .action-button:hover { background-color: #555; }
         .controls button:disabled { background-color: #ccc; cursor: not-allowed; }
         .action-button.primary { background-color: #007bff; }
         .action-button.primary:hover { background-color: #0056b3; }
-        .action-button.secondary { background-color: #6c757d; }
-        .action-button.secondary:hover { background-color: #545b62; }
-
 
         .mistakes-container { margin-bottom: 15px; font-size: 0.9em; }
         .mistake-dot { display: inline-block; width: 12px; height: 12px; background-color: #555; border-radius: 50%; margin: 0 3px; transition: background-color 0.3s; }
         .mistake-dot.lost { background-color: #ddd; }
 
+        /* Modal Styles */
         .modal {
             display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
             overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center;
         }
         .modal-content {
-            background-color: #fefefe; margin: auto; padding: 20px; border: 1px solid #888; /* Reduced padding */
+            background-color: #fefefe; margin: auto; padding: 20px; border: 1px solid #888;
             width: 80%; max-width: 380px; text-align: center; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         .modal-content h2 { margin-top: 0; font-size: 1.3em; }
@@ -105,63 +100,55 @@
             border: none; border-radius: 5px; cursor: pointer; font-size: 1em;
         }
         .modal-content button:hover { background-color: #0056b3; }
-
-        #validationMessage, #shareLinkContainer {
-            color: red; margin-top: 10px; font-weight: bold; font-size: 0.9em;
-        }
-        #shareLinkContainer { color: #007bff; }
-        #shareLinkInput { width: 100%; padding: 8px; box-sizing: border-box; margin-top: 5px; font-size: 0.8em; }
-        .info-text { font-size: 0.85em; color: #555; margin-bottom: 15px; }
-
+        #validationMessage { color: red; margin-top: 10px; font-weight: bold; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
-    <div id="initialChoiceContainer" class="container">
-        <h2>Welcome to Connections!</h2>
-        <p class="info-text">Play a game or set up your own custom version.</p>
-        <button id="playSharedGameButton" class="action-button" style="display:none;">Play Shared Game</button>
-        <button id="playSavedGameButton" class="action-button" style="display:none;">Play My Last Custom Game</button>
-        <button id="playDefaultGameButton" class="action-button">Play Default Game</button>
-        <button id="setupNewGameButton" class="action-button primary">Set Up / Share New Game</button>
-    </div>
-
+    <!-- Admin Setup Container (Hidden by default) -->
     <div id="adminSetupContainer" class="container">
-        <h2>Set Up Your Connections Game</h2>
-        <p class="info-text">Define 4 groups with 4 unique words each. After saving, you can generate a link to share this specific setup.</p>
+        <h2>Admin Game Setup</h2>
+        <p class="info-text">Define 4 groups with 4 unique words each. After saving, copy the generated code to update the live game.</p>
         <form id="adminForm">
-            <!-- Group setups (condensed for brevity, same as before) -->
+            <!-- Group 1 -->
             <div class="admin-group-setup">
-                <label for="groupName1">Group 1 Category:</label> <input type="text" id="groupName1" name="groupName1" required>
+                <label for="groupName1_admin">Group 1 Category:</label> <input type="text" id="groupName1_admin" name="groupName1" required>
                 <label>Words for Group 1:</label> <div class="word-inputs"> <input type="text" name="group1word1" required> <input type="text" name="group1word2" required> <input type="text" name="group1word3" required> <input type="text" name="group1word4" required> </div>
             </div>
+            <!-- Group 2 -->
             <div class="admin-group-setup">
-                <label for="groupName2">Group 2 Category:</label> <input type="text" id="groupName2" name="groupName2" required>
+                <label for="groupName2_admin">Group 2 Category:</label> <input type="text" id="groupName2_admin" name="groupName2" required>
                 <label>Words for Group 2:</label> <div class="word-inputs"> <input type="text" name="group2word1" required> <input type="text" name="group2word2" required> <input type="text" name="group2word3" required> <input type="text" name="group2word4" required> </div>
             </div>
+            <!-- Group 3 -->
             <div class="admin-group-setup">
-                <label for="groupName3">Group 3 Category:</label> <input type="text" id="groupName3" name="groupName3" required>
+                <label for="groupName3_admin">Group 3 Category:</label> <input type="text" id="groupName3_admin" name="groupName3" required>
                 <label>Words for Group 3:</label> <div class="word-inputs"> <input type="text" name="group3word1" required> <input type="text" name="group3word2" required> <input type="text" name="group3word3" required> <input type="text" name="group3word4" required> </div>
             </div>
+            <!-- Group 4 -->
             <div class="admin-group-setup">
-                <label for="groupName4">Group 4 Category:</label> <input type="text" id="groupName4" name="groupName4" required>
+                <label for="groupName4_admin">Group 4 Category:</label> <input type="text" id="groupName4_admin" name="groupName4" required>
                 <label>Words for Group 4:</label> <div class="word-inputs"> <input type="text" name="group4word1" required> <input type="text" name="group4word2" required> <input type="text" name="group4word3" required> <input type="text" name="group4word4" required> </div>
             </div>
-            <button type="submit" class="action-button primary">Save & Play This Setup</button>
-            <button type="button" id="generateShareLinkButton" class="action-button secondary" style="display:none;">Generate Sharable Link</button>
-            <button type="button" id="cancelSetupButton" class="action-button">Cancel</button>
+            <button type="submit" class="action-button primary">Save & Generate Live Game Code</button>
+            <button type="button" id="adminBackToPlayerViewButton" class="action-button">View Live Game</button>
             <div id="validationMessage"></div>
-            <div id="shareLinkContainer" style="display:none;">
-                <p>Share this link for others to play your custom game:</p>
-                <input type="text" id="shareLinkInput" readonly>
-                <button type="button" id="copyLinkButton" class="action-button">Copy Link</button>
-            </div>
         </form>
+        <div id="outputForLiveGameContainer" style="display:none;">
+            <h3>Update Live Game Data:</h3>
+            <p>1. Copy all the code from the text area below.</p>
+            <p>2. Open this HTML file (<code>your_game_name.html</code>) in a text editor.</p>
+            <p>3. Find the `// --- CONFIGURATION SECTION ---` at the top of the main <code>&lt;script&gt;</code> tag.</p>
+            <p>4. **Replace** the entire existing `const liveGameData = ...;` line (or lines if it's multi-line) with the code you copied.</p>
+            <p>5. Save the HTML file and re-upload it to your web server.</p>
+            <textarea id="liveGameDataOutput" rows="15" readonly></textarea>
+        </div>
     </div>
 
+    <!-- Player Game Container (Default View) -->
     <div id="gameContainer" class="container">
-        <!-- Game content same as before -->
         <h1>Create four groups of four!</h1>
+        <div id="gameStatusMessage" class="info-text" style="display:none;"></div>
         <div class="solved-groups-container" id="solvedGroupsContainer"></div>
         <div class="word-grid" id="wordGrid"></div>
         <div class="mistakes-container">
@@ -172,142 +159,129 @@
             <button id="deselectAllButton">Deselect All</button>
             <button id="submitButton">Submit</button>
         </div>
-        <button id="changeSetupButton" class="action-button" style="margin-top: 20px;">Back to Main Menu</button>
+        <!-- Optional: Button to go back to main site if this game was loaded via ?gameData= parameter -->
+        <button id="backToMainSiteGameButton" class="action-button" style="margin-top: 20px; display:none;">Play Main Site Game</button>
     </div>
 
+    <!-- Modal for Win/Lose Messages -->
     <div id="messageModal" class="modal">
-        <!-- Modal content same as before -->
         <div class="modal-content">
-            <h2 id="modalTitle"></h2> <p id="modalMessage"></p>
-            <button id="playAgainButton">Play Again (Same Setup)</button>
-            <button id="modalChangeSetupButton">Back to Main Menu</button>
+            <h2 id="modalTitle"></h2>
+            <p id="modalMessage"></p>
+            <button id="playAgainButton">Play Again</button>
+            <button id="modalBackToMainSiteGameButton" style="display:none;">Play Main Site Game</button>
         </div>
     </div>
 
     <script>
-        // Element selectors (same as before, ensure all are present)
-        const initialChoiceContainer = document.getElementById('initialChoiceContainer');
+        // --- CONFIGURATION SECTION ---
+        // ADMIN: After using the admin interface (?admin=YOUR_KEY),
+        // copy the generated 'const liveGameData = ...;' output
+        // and PASTE IT HERE, replacing this comment and the line below.
+        const liveGameData = [
+            { name: "FRUITS", words: ["APPLE", "BANANA", "CHERRY", "DATE"], color: '#a6d8a6' },
+            { name: "COLORS", words: ["RED", "GREEN", "BLUE", "YELLOW"], color: '#a7d8e8' },
+            { name: "ANIMALS", words: ["DOG", "CAT", "LION", "TIGER"], color: '#d7a7e8' },
+            { name: "PLANETS", words: ["EARTH", "MARS", "JUPITER", "VENUS"], color: '#e8cfa7' }
+        ]; // <-- EXAMPLE! REPLACE THIS WITH YOUR GENERATED DATA or null if no default.
+
+        const fallbackDefaultGameData = [ // Used if liveGameData is null or invalid
+            { name: "EXAMPLE FRUITS", words: ["FIG", "GRAPE", "KIWI", "LEMON"], color: '#a6d8a6' },
+            { name: "EXAMPLE COLORS", words: ["ORANGE", "PURPLE", "BLACK", "WHITE"], color: '#a7d8e8' },
+            { name: "EXAMPLE ANIMALS", words: ["BEAR", "WOLF", "FOX", "DEER"], color: '#d7a7e8' },
+            { name: "EXAMPLE SHAPES", words: ["CIRCLE", "SQUARE", "TRIANGLE", "STAR"], color: '#e8cfa7' }
+        ];
+        const groupColors = ['#a6d8a6', '#a7d8e8', '#d7a7e8', '#e8cfa7', '#f0c0c0', '#c0f0c0', '#c0c0f0', '#f0f0c0'];
+        // --- END CONFIGURATION SECTION ---
+
+        // !!! IMPORTANT: CHANGE THIS ADMIN KEY !!!
+        const ADMIN_KEY = "staccato";
+        // !!! IMPORTANT: CHANGE THIS ADMIN KEY !!!
+
+        let isAdminMode = false;
+        let currentGroupsData = [];
+        let gameLoadedFromURLParam = false; // True if ?gameData= was used
+
+        // DOM Elements
         const adminSetupContainer = document.getElementById('adminSetupContainer');
-        const gameContainer = document.getElementById('gameContainer');
         const adminForm = document.getElementById('adminForm');
         const validationMessage = document.getElementById('validationMessage');
-        const shareLinkContainer = document.getElementById('shareLinkContainer');
-        const shareLinkInput = document.getElementById('shareLinkInput');
-        const copyLinkButton = document.getElementById('copyLinkButton');
+        const outputForLiveGameContainer = document.getElementById('outputForLiveGameContainer');
+        const liveGameDataOutput = document.getElementById('liveGameDataOutput');
+        const adminBackToPlayerViewButton = document.getElementById('adminBackToPlayerViewButton');
 
-        const playSharedGameButton = document.getElementById('playSharedGameButton');
-        const playSavedGameButton = document.getElementById('playSavedGameButton');
-        const playDefaultGameButton = document.getElementById('playDefaultGameButton');
-        const setupNewGameButton = document.getElementById('setupNewGameButton');
-        const generateShareLinkButton = document.getElementById('generateShareLinkButton');
-        const cancelSetupButton = document.getElementById('cancelSetupButton');
-        const changeSetupButton = document.getElementById('changeSetupButton');
-
+        const gameContainer = document.getElementById('gameContainer');
+        const gameStatusMessage = document.getElementById('gameStatusMessage');
         const wordGrid = document.getElementById('wordGrid');
         const solvedGroupsContainer = document.getElementById('solvedGroupsContainer');
         const mistakesDotsContainer = document.getElementById('mistakesDots');
         const shuffleButton = document.getElementById('shuffleButton');
         const deselectAllButton = document.getElementById('deselectAllButton');
         const submitButton = document.getElementById('submitButton');
+        const backToMainSiteGameButton = document.getElementById('backToMainSiteGameButton');
+        
         const modal = document.getElementById('messageModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalMessage = document.getElementById('modalMessage');
         const playAgainButton = document.getElementById('playAgainButton');
-        const modalChangeSetupButton = document.getElementById('modalChangeSetupButton');
+        const modalBackToMainSiteGameButton = document.getElementById('modalBackToMainSiteGameButton');
 
         const MAX_MISTAKES = 4;
         let mistakesRemaining;
         let selectedWords = [];
         let gameWords = [];
-        let currentGroupsData = [];
         let solvedGroupsCount = 0;
-        let gameLoadedFromURL = false; // Flag
 
-        const defaultGroupsData = [
-            { name: "SHADES OF...", words: ["EVERGREEN", "INFRARED", "MARIGOLD", "QUICKSILVER"], color: '#a6d8a6' },
-            { name: "PIZZA STYLES", words: ["HAWAIIAN", "PLAIN", "SUPREME", "VEGGIE"], color: '#a7d8e8' },
-            { name: "TYPES OF MARKETS", words: ["BAZAAR", "FAIR", "MARKET", "OUTLET"], color: '#d7a7e8' },
-            { name: "CLEANING RELATED", words: ["BATHROOM", "DRY", "PIPE", "VACUUM"], color: '#e8cfa7' }
-        ];
-        const groupColors = ['#a6d8a6', '#a7d8e8', '#d7a7e8', '#e8cfa7', '#f0c0c0', '#c0f0c0', '#c0c0f0', '#f0f0c0'];
-
-        function hideAllContainers() {
-            initialChoiceContainer.style.display = 'none';
-            adminSetupContainer.style.display = 'none';
-            gameContainer.style.display = 'none';
-            modal.style.display = 'none';
-        }
-
-        function showInitialChoice() {
-            hideAllContainers();
-            initialChoiceContainer.style.display = 'block';
-            playSavedGameButton.style.display = localStorage.getItem('customConnectionsGame') ? 'inline-block' : 'none';
-            
+        document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('gameData')) {
-                playSharedGameButton.style.display = 'inline-block';
-            } else {
-                playSharedGameButton.style.display = 'none';
-            }
-        }
-        
-        playSharedGameButton.addEventListener('click', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameDataParam = urlParams.get('gameData');
-            if (gameDataParam) {
+            if (urlParams.get('admin') === ADMIN_KEY) {
+                isAdminMode = true;
+                initializeAdminView();
+            } else if (urlParams.has('gameData')) {
+                gameLoadedFromURLParam = true;
                 try {
-                    const decodedJson = atob(gameDataParam); // Base64 decode
-                    const gameSetup = JSON.parse(decodedJson);
-                    gameLoadedFromURL = true; // Set flag
-                    startGameWithConfig(gameSetup);
+                    const decodedJson = atob(urlParams.get('gameData'));
+                    currentGroupsData = JSON.parse(decodedJson);
+                    initializePlayerView("Playing a shared game link.");
                 } catch (e) {
                     console.error("Error loading game data from URL:", e);
-                    alert("Could not load the shared game. It might be corrupted.");
-                    showInitialChoice(); // Go back if error
+                    currentGroupsData = Array.isArray(liveGameData) && liveGameData.length > 0 ? liveGameData : fallbackDefaultGameData;
+                    initializePlayerView("Shared link invalid. Loading main site game.", true); // true for error
                 }
+            } else {
+                gameLoadedFromURLParam = false;
+                currentGroupsData = Array.isArray(liveGameData) && liveGameData.length > 0 ? liveGameData : fallbackDefaultGameData;
+                initializePlayerView(null); // No specific message unless an error
             }
         });
 
+        function hideAllMajorContainers() {
+            adminSetupContainer.style.display = 'none';
+            gameContainer.style.display = 'none';
+            if (modal) modal.style.display = 'none';
+        }
 
-        function showAdminSetup() {
-            hideAllContainers();
+        function initializeAdminView() {
+            hideAllMajorContainers();
             adminSetupContainer.style.display = 'block';
             adminForm.reset();
             validationMessage.textContent = '';
-            shareLinkContainer.style.display = 'none';
-            generateShareLinkButton.style.display = localStorage.getItem('customConnectionsGame') ? 'inline-block' : 'none';
+            outputForLiveGameContainer.style.display = 'none';
+
+            adminBackToPlayerViewButton.onclick = () => {
+                window.location.href = window.location.pathname; // Go to player view (removes query params)
+            };
         }
-
-        playSavedGameButton.addEventListener('click', () => {
-            const savedData = JSON.parse(localStorage.getItem('customConnectionsGame'));
-            if (savedData) {
-                gameLoadedFromURL = false;
-                startGameWithConfig(savedData);
-            }
-        });
-
-        playDefaultGameButton.addEventListener('click', () => {
-            gameLoadedFromURL = false;
-            startGameWithConfig(defaultGroupsData);
-        });
-
-        setupNewGameButton.addEventListener('click', showAdminSetup);
-        cancelSetupButton.addEventListener('click', showInitialChoice);
-        changeSetupButton.addEventListener('click', showInitialChoice);
-        modalChangeSetupButton.addEventListener('click', () => {
-            modal.style.display = 'none';
-            showInitialChoice();
-        });
-
-        adminForm.addEventListener('submit', function(event) {
+        
+        adminForm.addEventListener('submit', function(event) { // This listener should be outside DOMContentLoaded if adminForm is always in DOM
             event.preventDefault();
-            // Validation logic (same as before)
             validationMessage.textContent = '';
             const formData = new FormData(adminForm);
             const newGroupsData = [];
             const allEnteredWords = new Set();
             let duplicateFound = false;
             let emptyFieldFound = false;
+            let validationPassed = true;
 
             for (let i = 1; i <= 4; i++) {
                 const groupName = formData.get(`groupName${i}`).trim().toUpperCase();
@@ -318,64 +292,65 @@
                 ];
                 if (words.some(w => !w)) emptyFieldFound = true;
                 words.forEach(word => { if (word) { if (allEnteredWords.has(word)) duplicateFound = true; allEnteredWords.add(word); } });
-                newGroupsData.push({ name: groupName, words: words, color: groupColors[i-1] });
+                newGroupsData.push({ name: groupName, words: words, color: groupColors[i-1] || '#cccccc' });
             }
 
-            if (emptyFieldFound) { validationMessage.textContent = "All fields are required."; return; }
-            if (duplicateFound) { validationMessage.textContent = "All 16 words must be unique."; return; }
-            if (allEnteredWords.size !== 16 && !emptyFieldFound) { validationMessage.textContent = "Please fill all 16 unique word fields."; return; }
+            if (emptyFieldFound) { validationMessage.textContent = "All category names and word fields are required."; validationPassed = false; }
+            else if (duplicateFound) { validationMessage.textContent = "All 16 words must be unique."; validationPassed = false; }
+            else if (allEnteredWords.size !== 16) { validationMessage.textContent = "Please ensure all 16 word fields are filled with unique words."; validationPassed = false;}
 
-            localStorage.setItem('customConnectionsGame', JSON.stringify(newGroupsData));
-            generateShareLinkButton.style.display = 'inline-block'; // Show button after saving
-            shareLinkContainer.style.display = 'none'; // Hide any old link
-            alert("Custom game setup saved! You can now generate a sharable link or play it directly.");
-            // Optional: Immediately start playing this new setup
-            gameLoadedFromURL = false;
-            startGameWithConfig(newGroupsData);
+            if (validationPassed) {
+                localStorage.setItem('connectionsAdminLastSetup', JSON.stringify(newGroupsData)); // For admin's own reference
+                const outputString = `const liveGameData = ${JSON.stringify(newGroupsData, null, 2)};`;
+                liveGameDataOutput.value = outputString;
+                outputForLiveGameContainer.style.display = 'block';
+                validationMessage.textContent = "Code generated! Follow instructions to update the live game.";
+                validationMessage.style.color = 'green';
+            } else {
+                validationMessage.style.color = 'red';
+                outputForLiveGameContainer.style.display = 'none';
+            }
         });
 
-        generateShareLinkButton.addEventListener('click', () => {
-            const savedDataString = localStorage.getItem('customConnectionsGame');
-            if (!savedDataString) {
-                alert("No custom game saved. Please save a setup first.");
+
+        function initializePlayerView(statusMsg, isError = false) {
+            hideAllMajorContainers();
+            gameContainer.style.display = 'block';
+
+            if (statusMsg) {
+                gameStatusMessage.textContent = statusMsg;
+                gameStatusMessage.style.color = isError ? 'red' : '#555';
+                gameStatusMessage.style.display = 'block';
+            } else {
+                gameStatusMessage.style.display = 'none';
+            }
+            
+            if (gameLoadedFromURLParam) {
+                backToMainSiteGameButton.style.display = 'inline-block';
+                modalBackToMainSiteGameButton.style.display = 'inline-block';
+            } else {
+                backToMainSiteGameButton.style.display = 'none';
+                modalBackToMainSiteGameButton.style.display = 'none';
+            }
+
+            if (!currentGroupsData || currentGroupsData.length !== 4 || !currentGroupsData.every(g => g.words && g.words.length === 4)) {
+                wordGrid.innerHTML = `<p style="color:red; font-weight:bold;">Game configuration is invalid or missing. Please contact the site administrator, or if you are the admin, check the 'liveGameData' variable in the HTML.</p>`;
+                // Disable game controls
+                shuffleButton.disabled = true;
+                deselectAllButton.disabled = true;
+                submitButton.disabled = true;
                 return;
             }
-            try {
-                const base64EncodedData = btoa(savedDataString); // Base64 encode the JSON string
-                const currentUrl = window.location.href.split('?')[0]; // Get URL without existing query params
-                const shareUrl = `${currentUrl}?gameData=${base64EncodedData}`;
-                
-                shareLinkInput.value = shareUrl;
-                shareLinkContainer.style.display = 'block';
-                validationMessage.textContent = ''; // Clear any previous validation messages
-            } catch (e) {
-                console.error("Error generating share link:", e);
-                alert("Could not generate share link.");
-            }
-        });
-
-        copyLinkButton.addEventListener('click', () => {
-            shareLinkInput.select();
-            shareLinkInput.setSelectionRange(0, 99999); // For mobile devices
-            try {
-                document.execCommand('copy');
-                alert('Link copied to clipboard!');
-            } catch (err) {
-                alert('Failed to copy link. Please copy it manually.');
-            }
-        });
-
-
-        function startGameWithConfig(groupsData) {
-            currentGroupsData = groupsData;
-            hideAllContainers();
-            gameContainer.style.display = 'block';
             initGame();
         }
 
-        // --- initGame and other game logic functions (handleTileClick, submit, processCorrectGuess, etc.) ---
-        // These functions remain largely the same as in the previous version.
-        // Make sure they use `currentGroupsData`.
+        backToMainSiteGameButton.onclick = () => {
+            window.location.href = window.location.pathname; // Go to main site game (removes ?gameData=)
+        };
+        modalBackToMainSiteGameButton.onclick = () => {
+            window.location.href = window.location.pathname;
+        };
+
         function initGame() {
             solvedGroupsContainer.innerHTML = '';
             wordGrid.innerHTML = '';
@@ -385,10 +360,12 @@
             mistakesRemaining = MAX_MISTAKES;
             updateMistakesDisplay();
             modal.style.display = 'none';
+            shuffleButton.disabled = false;
+            deselectAllButton.disabled = false;
+
 
             const allWordsNested = currentGroupsData.map(group => group.words);
             let flatWords = [].concat(...allWordsNested).map(w => w.toUpperCase());
-            
             flatWords.sort(() => Math.random() - 0.5);
 
             flatWords.forEach(wordText => {
@@ -404,6 +381,7 @@
         }
 
         function handleTileClick(tile) {
+            // ... (same as previous versions)
             if (tile.classList.contains('solved-placeholder')) return;
             const word = tile.dataset.word;
             if (selectedWords.includes(word)) {
@@ -425,13 +403,15 @@
         }
 
         function arraysEqualIgnoringOrder(arr1, arr2) {
-            if (arr1.length !== arr2.length) return false;
+            // ... (same as previous versions)
+             if (arr1.length !== arr2.length) return false;
             const sortedArr1 = [...arr1].sort();
             const sortedArr2 = [...arr2].sort();
             return sortedArr1.every((value, index) => value === sortedArr2[index]);
         }
 
         submitButton.addEventListener('click', () => {
+            // ... (same as previous versions, using currentGroupsData)
             if (selectedWords.length !== 4) return;
             const selectedWordsUpper = selectedWords.map(w => w.toUpperCase());
             const foundGroup = currentGroupsData.find(groupData => 
@@ -444,10 +424,12 @@
         });
         
         function isGroupSolved(groupName) {
+            // ... (same as previous versions)
             return !!document.querySelector(`.solved-group[data-group-name="${groupName.toUpperCase()}"]`);
         }
 
         function processCorrectGuess(groupData) {
+            // ... (same as previous versions, ensuring solved group order is consistent)
             solvedGroupsCount++;
             const groupDiv = document.createElement('div');
             groupDiv.classList.add('solved-group');
@@ -495,6 +477,7 @@
         }
 
         function processIncorrectGuess() {
+            // ... (same as previous versions)
             mistakesRemaining--;
             updateMistakesDisplay();
             const selectedTiles = selectedWords.map(word => gameWords.find(gw => gw.text === word).element);
@@ -504,6 +487,7 @@
         }
 
         function updateMistakesDisplay() {
+            // ... (same as previous versions)
             mistakesDotsContainer.innerHTML = '';
             for (let i = 0; i < MAX_MISTAKES; i++) {
                 const dot = document.createElement('span');
@@ -521,6 +505,7 @@
         }
 
         deselectAllButton.addEventListener('click', () => {
+            // ... (same as previous versions)
             selectedWords.forEach(word => {
                 const tileObj = gameWords.find(gw => gw.text === word);
                 if (tileObj && tileObj.element) { tileObj.element.classList.remove('selected'); anime({ targets: tileObj.element, scale: 1, duration: 200 }); }
@@ -530,6 +515,7 @@
         });
 
         shuffleButton.addEventListener('click', () => {
+            // ... (same as previous versions)
             const activeTiles = Array.from(wordGrid.querySelectorAll('.word-tile:not(.solved-placeholder)'));
             for (let i = activeTiles.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [activeTiles[i], activeTiles[j]] = [activeTiles[j], activeTiles[i]]; }
             anime({
@@ -542,40 +528,21 @@
         });
 
         function showModal(title, message) {
+            // ... (same as previous versions, adjust button text based on gameLoadedFromURLParam)
             modalTitle.textContent = title;
             modalMessage.textContent = message;
-            playAgainButton.textContent = gameLoadedFromURL ? "Play This Shared Game Again" : "Play Again (Same Setup)"; // Adjust button text
+            playAgainButton.textContent = gameLoadedFromURLParam ? "Play This Shared Game Again" : "Play Again";
             modal.style.display = 'flex';
             anime({ targets: modal, opacity: [0, 1], duration: 300, easing: 'easeOutQuad' });
             anime({ targets: '.modal-content', scale: [0.7, 1], opacity: [0, 1], duration: 400, easing: 'easeOutExpo', delay: 100 });
         }
 
         playAgainButton.addEventListener('click', () => {
+            // ... (same as previous versions)
             anime({
                 targets: modal, opacity: 0, duration: 300, easing: 'easeInQuad',
-                complete: () => { modal.style.display = 'none'; initGame(); }
+                complete: () => { modal.style.display = 'none'; initGame(); } // initGame uses currentGroupsData
             });
-        });
-
-        // Initial setup: Check for URL param first, then show initial choice
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameDataParam = urlParams.get('gameData');
-
-            if (gameDataParam) {
-                try {
-                    const decodedJson = atob(gameDataParam); // Base64 decode
-                    const gameSetup = JSON.parse(decodedJson);
-                    gameLoadedFromURL = true;
-                    startGameWithConfig(gameSetup); 
-                } catch (e) {
-                    console.error("Error loading game data from URL on initial load:", e);
-                    alert("Could not load the shared game. It might be corrupted. Showing default options.");
-                    showInitialChoice(); // Fallback if URL data is bad
-                }
-            } else {
-                showInitialChoice(); // Normal startup if no gameData in URL
-            }
         });
 
     </script>
